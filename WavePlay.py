@@ -1,12 +1,16 @@
 import io
-
+import tkinter as tk #Biblioteca para criar a interface gráfica do player de música.
+from tkinter import filedialog #Para abrir uma janela de diálogo para selecionar a pasta com as músicas.
 import pygame # type: ignore #Foi instalado a biblioteca pygame-ce importada como pygame para o exercício 21, para reproduzir um arquivo MP3.
 import os 
 from mutagen.mp3 import MP3 #Biblioteca mutagen para obter a duração total da música.
 from mutagen.id3 import ID3, ID3NoHeaderError #Para ler as tags ID3 das músicas, como título e artista.
 
 pygame.init()
-pygame.mixer.init()
+
+
+root = tk.Tk()
+root.withdraw()  # Oculta a janela principal
 
 # Janela
 LARGURA = 970
@@ -18,11 +22,41 @@ font = pygame.font.SysFont(None, 20)
 font_pequena = pygame.font.SysFont(None, 16)
 
 # 📂 Pasta com músicas
-pasta = "sua_pasta_de_musicas" # Substitua pelo caminho da sua pasta de músicas
-playlist = [f for f in os.listdir(pasta) if f.endswith(".mp3")]
+pasta = filedialog.askdirectory(title="Selecione a pasta com suas músicas")
+
+if not pasta:
+    raise ValueError("Nenhuma pasta selecionada.")
+    exit()
+
+# ------- Filtra músicas --------
+extesoes_validas = (".mp3", ".wav")
+
+playlist = [os.path.join(pasta, f) for f in os.listdir(pasta) if f.lower().endswith(extesoes_validas)]
 
 if not playlist:
     raise ValueError("Nenhuma música encontrada na pasta especificada.")
+    exit()
+
+def escolher_pasta():
+    global pasta, playlist, indice
+    nova_pasta = filedialog.askdirectory(title="Selecione a pasta com suas músicas")
+    if not nova_pasta:
+        return
+    nova_playlist = [
+        os.path.join(nova_pasta, f) 
+        for f in os.listdir(nova_pasta)
+        if f.lower().endswith(extesoes_validas)
+    ]
+
+    if not nova_pasta:
+        return
+    pasta = nova_pasta
+    playlist = nova_playlist
+    indice = 0
+    tocar(indice)  
+
+# -------- Iniciar pygame.mixer --------
+pygame.mixer.init()
 
 indice = 0
 pausado = False
@@ -43,9 +77,10 @@ COR_BOTAO = (55, 55, 55)
 COR_BOTAO_HOVER = (85, 85, 85)
 COR_SEM_CAPA = (60, 60, 60)
 
-react_anterior = pygame.Rect(260, 230, 140, 45)
-react_play = pygame.Rect(410, 230, 140, 45)
-react_proxima = pygame.Rect(560, 230, 140, 45)
+react_anterior = pygame.Rect(210, 200, 140, 45)
+react_play = pygame.Rect(360, 200, 140, 45)
+react_proxima = pygame.Rect(510, 200, 140, 45)
+react_pasta = pygame.Rect(660, 200, 140, 45)
 
 def formatar_tempo(segundos):
     min = segundos // 60
@@ -60,7 +95,7 @@ def obter_capa(caminho):
             imagem_bytes = apic_list[0].data
             imagem_stream = io.BytesIO(imagem_bytes)
             imagem = pygame.image.load(imagem_stream)
-            return pygame.transform.smoothscale(imagem, (200, 200))
+            return pygame.transform.smoothscale(imagem, (150, 150))
     except ID3NoHeaderError:
         pass
     except pygame.error:
@@ -70,7 +105,8 @@ def obter_capa(caminho):
 def tocar(ind):
     global duracao_total, pausado, capa_atual
 
-    caminho = os.path.join(pasta, playlist[ind])
+    #Obtém o caminho completo da música atual na playlist
+    caminho = playlist[ind] 
 
     #Duração total com o mutagen
     audio = MP3(caminho)
@@ -81,8 +117,6 @@ def tocar(ind):
     pygame.mixer.music.load(caminho)
     pygame.mixer.music.play()
     pausado = False
-
-
 
 def desenhar_barra(x, y, largura, altura, progresso):
     pygame.draw.rect(screen, COR_BARRA, (x, y, largura, altura), border_radius=8)
@@ -104,7 +138,6 @@ def desenhar_botao(rect, texto):
     txt = font_pequena.render(texto, True, COR_TEXTO)
     txt_rect = txt.get_rect(center=rect.center)
     screen.blit(txt, txt_rect)
-
 
 def proxima_musica():
     global indice
@@ -133,7 +166,7 @@ while rodando:
     screen.fill(COR_FUNDO)
 
     # 🎵 Nome da música
-    nome = playlist[indice]
+    nome = os.path.basename(playlist[indice])
 
     # ⏱ Tempo atual
     tempo_ms = pygame.mixer.music.get_pos()
@@ -161,8 +194,8 @@ while rodando:
         screen.blit(texto_sem_capa, rect_sem_capa)
 
     # Nome da música
-    texto_nome = font.render(f"{nome}", True, COR_TEXTO)
-    screen.blit(texto_nome, (240, 30))
+    texto_nome = font.render(nome, True, COR_TEXTO)
+    screen.blit(texto_nome, (210, 30))
 
     # Tempos
     texto_tempo = font.render(
@@ -170,27 +203,28 @@ while rodando:
         True,
         COR_TEXTO
     )
-    screen.blit(texto_tempo, (240, 75))
+    screen.blit(texto_tempo, (210, 75))
 
     texto_restante = font_pequena.render(
         f"Restante: -{formatar_tempo(tempo_restante)}",
         True,
         COR_TEXTO_SEC
     )  
-    screen.blit(texto_restante, (240, 120))
+    screen.blit(texto_restante, (210, 120))
 
     # Barra de progresso
-    desenhar_barra(240, 160, 700, 25, progresso)
+    desenhar_barra(210, 160, 700, 25, progresso)
 
     # Botões
     desenhar_botao(react_anterior, "Anterior (B)")
     desenhar_botao(react_play, "Pause (P)" if not pausado else "Play (P)")
     desenhar_botao(react_proxima, "Próxima (N)")
+    desenhar_botao(react_pasta, "Escolher Pasta (O)")
 
     #Status
     status = "Pausado" if pausado else "Reproduzindo"
     texto_status = font_pequena.render(f"Status: {status}", True, COR_TEXTO_SEC)
-    screen.blit(texto_status, (240, 290))
+    screen.blit(texto_status, (210, 250))
 
 
     for event in pygame.event.get():
@@ -206,19 +240,22 @@ while rodando:
             # ▶️ Play / Pause (P)
             elif event.key == pygame.K_p:
                 alternar_pause()
-            elif pausado:
-                proxima_musica()
             elif event.key == pygame.K_b:
                 musica_anterior()
+            elif event.key == pygame.K_n:
+                proxima_musica()
+            elif event.key == pygame.K_o:
+                escolher_pasta()
 
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if react_anterior.collidepoint(event.pos):
-                    musica_anterior()
-                elif react_play.collidepoint(event.pos):
-                    alternar_pause()
-                elif react_proxima.collidepoint(event.pos):
-                    proxima_musica()
-
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if react_anterior.collidepoint(event.pos):
+                musica_anterior()
+            elif react_play.collidepoint(event.pos):
+                alternar_pause()
+            elif react_proxima.collidepoint(event.pos):
+                proxima_musica()
+            elif react_pasta.collidepoint(event.pos):
+                escolher_pasta()
     pygame.display.flip()
     clock.tick(30)
 
