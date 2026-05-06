@@ -349,7 +349,6 @@ while rodando:
     if duracao_total > 0 and tempo_atual > duracao_total:
         tempo_atual = duracao_total
 
-    tempo_restante = max(0, duracao_total - tempo_atual)
     progresso = tempo_atual / duracao_total if duracao_total > 0 else 0
 
     if capa_atual:
@@ -370,13 +369,6 @@ while rodando:
     )
     screen.blit(texto_tempo, (180, 66))
 
-    texto_restante = font_pequena.render(
-        f"Restante: -{formatar_tempo(tempo_restante)}",
-        True,
-        COR_TEXTO_SEC,
-    )
-    screen.blit(texto_restante, (180, 88))
-
     desenhar_barra(barra_rect, progresso)
 
     texto_volume = font_pequena.render(f"Volume: {int(volume_atual * 100)}%", True, COR_TEXTO)
@@ -387,12 +379,6 @@ while rodando:
     desenhar_icone_play_pause(rect_play, pausado)
     desenhar_icone_proxima(rect_proxima)
     desenhar_botao_texto(rect_pasta, "Pasta")
-
-    status = "Pausado" if pausado else "Reproduzindo"
-    texto_status = font_pequena.render(f"Status: {status}", True, COR_TEXTO_SEC)
-    screen.blit(texto_status, (520, 200))
-
-    
 
     desenhar_playlist()
 
