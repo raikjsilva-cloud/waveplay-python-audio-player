@@ -71,19 +71,3 @@ pip install -r requirements.txt
 ```bash
 python -m src.music_player.main
 ```
-
-## Ideias de evolução
-
-- Salvar última pasta aberta
-- Salvar volume em arquivo `.json`
-- Botão de embaralhar e repetir
-- Busca dentro da playlist
-- Melhorar suporte a `.wav`
-
-## Aprendizados demonstrados
-
-- Organização modular em Python
-- Separação entre lógica e interface
-- Manipulação de eventos no `pygame`
-- Leitura de metadados de áudio com `mutagen`
-- Estruturação de projeto para portfólio
