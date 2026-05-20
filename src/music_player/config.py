@@ -6,7 +6,7 @@ Assim, o restante do código fica mais legível e fácil de ajustar.
 
 import pygame
 
-LARGURA = 800
+LARGURA = 600
 ALTURA = 400
 FPS = 30
 
@@ -32,8 +32,9 @@ RECT_PLAY = pygame.Rect(245, 135, 54, 54)
 RECT_PROXIMA = pygame.Rect(310, 135, 54, 54)
 RECT_PASTA = pygame.Rect(380, 140, 120, 42)
 
-PLAYLIST_RECT = pygame.Rect(10, 205, 780, 185)
+BUSCA_RECT = pygame.Rect(330, 211, 250, 28)
+PLAYLIST_RECT = pygame.Rect(10, 205, 580, 185)
 ALTURA_ITEM_PLAYLIST = 30
 ITENS_VISIVEIS = 5
 
-EXTENSOES_VALIDAS = (".mp3", ".wav")
+EXTENSOES_VALIDAS = (".mp3")
