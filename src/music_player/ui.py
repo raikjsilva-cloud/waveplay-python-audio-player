@@ -40,13 +40,13 @@ class UI:
         self.font_pequena = font_pequena
 
     def desenhar_fundo_topo(self) -> None:
-        pygame.draw.rect(self.screen, COR_CARD, (10, 10, 780, 185), border_radius=20)
+        pygame.draw.rect(self.screen, COR_CARD, (10, 10, 580, 185), border_radius=20)
 
     def desenhar_capa(self, capa, rect) -> None:
         if capa:
             self.screen.blit(capa, rect.topleft)
         else:
-            pygame.draw.rect(self.screen, COR_SEM_CAPA, rect, border_radius=14)
+            pygame.draw.rect(self.screen, COR_SEM_CAPA, rect, border_radius=20)
             texto = self.font_pequena.render("Sem capa", True, COR_TEXTO_SEC)
             rect_texto = texto.get_rect(center=rect.center)
             self.screen.blit(texto, rect_texto)
@@ -115,6 +115,16 @@ class UI:
         pygame.draw.polygon(self.screen, COR_TEXTO, tri1)
         pygame.draw.polygon(self.screen, COR_TEXTO, tri2)
 
+    def desenhar_busca(self, rect, texto, ativo):
+        cor_borda = COR_PROGRESSO if ativo else COR_CARD_2
+        pygame.draw.rect(self.screen, COR_CARD_2, rect, border_radius=10)
+        pygame.draw.rect(self.screen, cor_borda, rect, 2, border_radius=10)
+
+        placeholder = "Buscar musica..." if not texto else texto
+        cor_texto = COR_TEXTO_SEC if not texto else COR_TEXTO
+        render = self.font_pequena.render(placeholder, True, cor_texto)
+        self.screen.blit(render, (rect.x + 10, rect.y + 6))    
+
     def desenhar_botao_texto(self, rect, texto: str) -> None:
         self.desenhar_botao_base(rect)
         txt = self.font_pequena.render(texto, True, COR_TEXTO)
@@ -147,6 +157,9 @@ class UI:
         self,
         nome,
         player,
+        busca_rect,
+        texto_busca,
+        busca_ativa,
         capa_rect,
         barra_rect,
         volume_rect,
@@ -167,14 +180,13 @@ class UI:
         if player.duracao_total > 0 and tempo_atual > player.duracao_total:
             tempo_atual = player.duracao_total
 
-        tempo_restante = max(0, player.duracao_total - tempo_atual)
         progresso = tempo_atual / player.duracao_total if player.duracao_total > 0 else 0
 
         self.desenhar_capa(player.capa_atual, capa_rect)
 
         texto_nome = self.font.render(nome[:38], True, COR_TEXTO)
         self.screen.blit(texto_nome, (180, 32))
-
+        
         texto_tempo = self.font.render(
             f"{formatar_tempo(tempo_atual)}",
             True,
@@ -198,10 +210,9 @@ class UI:
         )
         self.screen.blit(texto_volume, (180, 97))
         self.desenhar_slider_volume(volume_rect, player.volume)
-
         self.desenhar_icone_anterior(rect_anterior)
         self.desenhar_icone_play_pause(rect_play, player.pausado)
         self.desenhar_icone_proxima(rect_proxima)
         self.desenhar_botao_texto(rect_pasta, "Pasta")
-
         self.desenhar_playlist(playlist_rect, playlist_manager, itens_visiveis, altura_item)
+        self.desenhar_busca(busca_rect, texto_busca, busca_ativa)
